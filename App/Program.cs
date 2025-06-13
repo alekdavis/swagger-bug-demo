@@ -1,3 +1,4 @@
+using App;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -22,12 +23,29 @@ builder.Services.AddSwaggerGen
 
         if (xmlFiles != null && xmlFiles.Count > 0)
         {
-            xmlFiles.ForEach(xmlFile =>
-            {
-                XDocument xmlDoc = XDocument.Load(xmlFile);
-                options.IncludeXmlComments(() => new XPathDocument(xmlDoc.CreateReader()), true);
-                options.UseAllOfToExtendReferenceSchemas();
-             });
+			XDocument fullXmlDoc = new(new XElement(XName.Get("doc")));
+			var fullXmlMembers = new XElement(XName.Get("members"));
+
+			if (fullXmlDoc.Root is not null)
+			{
+				xmlFiles.ForEach(xmlFile =>
+				{
+					var xDocument = XDocument.Load(xmlFile);
+					var assemblyMembers = xDocument.Root?.Element(fullXmlMembers.Name);
+					if (assemblyMembers is not null)
+					{
+						foreach (var assemblymember in assemblyMembers.Elements())
+						{
+							fullXmlMembers.Add(assemblymember);
+						}
+					}
+				});
+
+				fullXmlDoc.Root.Add(fullXmlMembers);
+			}
+
+			options.IncludeXmlComments(() => new XPathDocument(fullXmlDoc.CreateReader()), true);
+			options.UseAllOfToExtendReferenceSchemas();
         }
     }
 );
