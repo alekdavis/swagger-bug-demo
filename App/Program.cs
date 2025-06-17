@@ -1,4 +1,5 @@
 using App;
+using Swashbuckle.AspNetCore.Filters;
 using System.Text.Json.Serialization;
 using System.Xml.Linq;
 using System.Xml.XPath;
@@ -17,8 +18,13 @@ builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen
 (
-    options =>
+
+options =>
     {
+		// See "Add custom serializer to Swagger in my .Net core API":
+		// https://stackoverflow.com/questions/59902076/add-custom-serializer-to-swagger-in-my-net-core-api#answer-64812850
+		//options.ExampleFilters();
+
         List<string> xmlFiles = [.. Directory.GetFiles(AppContext.BaseDirectory,"*.xml",SearchOption.TopDirectoryOnly)];
 
         if (xmlFiles != null && xmlFiles.Count > 0)
@@ -44,8 +50,10 @@ builder.Services.AddSwaggerGen
 				fullXmlDoc.Root.Add(fullXmlMembers);
 			}
 
-			options.IncludeXmlComments(() => new XPathDocument(fullXmlDoc.CreateReader()), true);
-			options.UseAllOfToExtendReferenceSchemas();
+			var doc = new XPathDocument(fullXmlDoc.CreateReader());
+			options.IncludeXmlComments(() => doc, true);
+			//options.UseAllOfToExtendReferenceSchemas();
+			options.AddSchemaFilterInstance(new EnumSchemaFilter(doc));
         }
     }
 );
