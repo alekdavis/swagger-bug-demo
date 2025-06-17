@@ -52,7 +52,7 @@ options =>
 
 			var doc = new XPathDocument(fullXmlDoc.CreateReader());
 			options.IncludeXmlComments(() => doc, true);
-			//options.UseAllOfToExtendReferenceSchemas();
+			options.UseAllOfToExtendReferenceSchemas();
 			options.AddSchemaFilterInstance(new EnumSchemaFilter(doc));
         }
     }
